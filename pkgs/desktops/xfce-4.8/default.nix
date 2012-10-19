@@ -60,6 +60,8 @@ rec {
 
   xfce4_appfinder = callPackage ./core/xfce4-appfinder.nix { };
 
+  xfce4devtools = callPackage ./core/xfce4-dev-tools.nix { };
+
 
   #### APPLICATIONS
   
@@ -72,6 +74,8 @@ rec {
   mousepad = callPackage ./applications/mousepad.nix { };
 
   ristretto = callPackage ./applications/ristretto.nix { };
+
+  squeeze = callPackage ./applications/squeeze.nix { };
 
   xfce4_power_manager = callPackage ./applications/xfce4-power-manager.nix { };
 
