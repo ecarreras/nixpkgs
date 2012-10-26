@@ -1,11 +1,11 @@
 { stdenv, fetchurl, postgresql, wxGTK, libxml2, libxslt, openssl }:
 
 stdenv.mkDerivation rec {
-  name = "pgadmin3-1.10.0";
+  name = "pgadmin3-1.16.0";
 
   src = fetchurl {
-    url = "http://ftp3.de.postgresql.org/pub/Mirrors/ftp.postgresql.org/pgadmin3/release/v1.10.0/src/pgadmin3-1.10.0.tar.gz";
-    sha256 = "1ndi951da3jw5800fjdgkbvl8n6k71x7x16ghihi1l88bilf2a16";
+    url = "http://ftp.postgresql.org/pub/pgadmin3/release/v1.16.0/src/${name}.tar.gz";
+    sha256 = "1b2iv105cdyjh208ml8f893b9xy9nka6pvb1a9hj1jgr43v6zkgr";
   };
 
   buildInputs = [ postgresql wxGTK libxml2 libxslt openssl ];
