@@ -10,12 +10,16 @@ stdenv.mkDerivation rec {
 
   buildInputs = [ openssl db4 gettext ] ++ stdenv.lib.optional stdenv.isLinux pam;
 
+  patches = [ ./build-osx.patch ];
+  patchFlags = "-p1";
+
   # Set this variable at build-time to make sure $out can be evaluated.
   preConfigure = ''
     configureFlagsArray=( --with-plugindir=$out/lib/sasl2
                           --with-configdir=$out/lib/sasl2
 			  --with-saslauthd=/run/saslauthd
 			  --enable-login
+                          --disable-macos-framework
 			)
   '';
 

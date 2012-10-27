@@ -1,0 +1,127 @@
+diff --git a/Makefile.am b/Makefile.am
+index d6005fb..b35164e 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -69,7 +69,7 @@ else
+ INSTALLOSX = 
+ endif
+ 
+-SUBDIRS=include sasldb plugins lib utils doc man $(PWC) $(SAM) $(JAV) $(SAD)
++SUBDIRS=include sasldb lib plugins utils doc man $(PWC) $(SAM) $(JAV) $(SAD)
+ EXTRA_DIST=config cmulocal win32 mac dlcompat-20010505 NTMakefile INSTALL.TXT
+ 
+ dist-hook:
+diff --git a/Makefile.in b/Makefile.in
+index 8cee0e4..e849eed 100644
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -79,7 +79,7 @@ AM_RECURSIVE_TARGETS = $(RECURSIVE_TARGETS:-recursive=) \
+ 	distdir dist dist-all distcheck
+ ETAGS = etags
+ CTAGS = ctags
+-DIST_SUBDIRS = include sasldb plugins lib utils doc man pwcheck sample \
++DIST_SUBDIRS = include sasldb lib plugins utils doc man pwcheck sample \
+ 	java saslauthd
+ DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
+ distdir = $(PACKAGE)-$(VERSION)
+diff --git a/config/ltconfig b/config/ltconfig
+index 20327d6..a91118e 100755
+--- a/config/ltconfig
++++ b/config/ltconfig
+@@ -1374,7 +1374,7 @@ else
+ 
+   darwin[15]* | rhapsody*)
+     allow_undefined_flag='-undefined error'
+-    archive_cmds='$CC $(test x$module = xyes && echo -bundle || echo -dynamiclib) $allow_undefined_flag -o $lib $libobjs $deplibs $linkopts -install_name $rpath/$soname $(test -n "$verstring" -a x$verstring != x0.0 && echo $verstring)'
++    archive_cmds='$CC $(test x$module = xyes && echo -bundle || echo -dynamiclib) $allow_undefined_flag -o $lib $libobjs $deplibs $linkopts $(test x$module != xyes && echo -install_name $rpath/$soname) $(test -n "$verstring" -a x$verstring != x0.0 && echo $verstring)'
+     # We need to add '_' to the symbols in $export_symbols first
+     #archive_expsym_cmds="$archive_cmds"' && strip -s $export_symbols $lib'
+     hardcode_direct=yes
+@@ -1385,7 +1385,7 @@ else
+   # Mac OS X v10.2 uses bash for /bin/sh instead of zsh, and the quoting syntax is incompatible
+   darwin*)
+     allow_undefined_flag='-undefined error'
+-    archive_cmds='$CC $(test x$module = xyes && echo -bundle || echo -dynamiclib) $allow_undefined_flag -o $lib $libobjs $deplibs $linkopts $(test x$module != xyes && echo -install_name $rpath/$soname $tmp_verstring)'
++    archive_cmds='$CC $(test x$module = xyes && echo -bundle || echo -dynamiclib) $allow_undefined_flag -o $lib $libobjs $deplibs $linkopts $(test x$module != xyes && echo -install_name $LD_RUN_PATH/$soname $tmp_verstring)'
+     # We need to add '_' to the symbols in $export_symbols first
+     #archive_expsym_cmds="$archive_cmds"' && strip -s $export_symbols $lib'
+     hardcode_direct=yes
+@@ -1950,8 +1950,8 @@ darwin* | rhapsody*)
+     file_magic_test_file='/usr/lib/libSystem.dylib'
+     ;;
+   esac
+-  library_names_spec='${libname}${release}${versuffix}.$(test x$module = xyes && echo so || echo dylib) ${libname}${release}${major}.$(test x$module = xyes && echo so || echo dylib) ${libname}.$(test x$module = xyes && echo so || echo dylib)'
+-  soname_spec='${libname}${release}${major}.$(test x$module = xyes && echo so || echo dylib)'
++  library_names_spec='${libname}.$(test x$module = xyes && echo plugin || echo dylib)'
++  soname_spec='${libname}.$(test x$module = xyes && echo plugin || echo dylib)'
+   shlibpath_overrides_runpath=yes
+   shlibpath_var=DYLD_LIBRARY_PATH
+   ;;
+diff --git a/config/ltmain.sh b/config/ltmain.sh
+index 710f192..7612481 100644
+--- a/config/ltmain.sh
++++ b/config/ltmain.sh
+@@ -1775,11 +1775,12 @@ compiler."
+ 	darwin)
+ 	  # Like Linux, but with the current version available in
+ 	  # verstring for coding it into the library header
+-	  major=.`expr $current - $age`
+-	  versuffix="$major.$age.$revision"
++	  major=`expr $current - $age`
++	  versuffix=".$major.$age.$revision"
+ 	  # Darwin ld doesn't like 0 for these options...
+ 	  minor_current=`expr $current + 1`
+-	  verstring="-compatibility_version $minor_current -current_version $minor_current.$revision"
++	  verstring="-compatibility_version $major -current_version $major.$age.$revision"
++	  major=".$major"
+ 	  ;;
+ 
+ 	*)
+diff --git a/configure b/configure
+index d20e6cd..05d8673 100755
+--- a/configure
++++ b/configure
+@@ -7885,7 +7885,7 @@ $as_echo "$dblib" >&6; }
+ SASL_DB_BACKEND="db_${dblib}.lo"
+ SASL_DB_BACKEND_STATIC="db_${dblib}.o allockey.o"
+ SASL_DB_BACKEND_STATIC_SRCS="\$(top_srcdir)/sasldb/db_${dblib}.c \$(top_srcdir)/sasldb/allockey.c"
+-SASL_DB_UTILS="saslpasswd2 sasldblistusers2"
++SASL_DB_UTILS="saslpasswd2$EXEEXT sasldblistusers2$EXEEXT"
+ SASL_DB_MANS="saslpasswd2.8 sasldblistusers2.8"
+ 
+ case "$dblib" in
+diff --git a/configure.in b/configure.in
+index 60fb154..15a0124 100644
+--- a/configure.in
++++ b/configure.in
+@@ -1,7 +1,7 @@
+ dnl configure.in for the SASL library
+ dnl Rob Siemborski
+ dnl Rob Earhart
+-dnl $Id: configure.in,v 1.222 2011/09/07 13:19:44 murch Exp $
++dnl $Id: configure.in,v 1.223 2011/09/13 16:30:23 mel Exp $
+ dnl
+ dnl Copyright (c) 2001 Carnegie Mellon University.  All rights reserved.
+ dnl
+@@ -1399,7 +1399,7 @@ struct sockaddr_storage {
+ #endif /* CONFIG_H */
+ ])
+ 
+-AC_CONFIG_HEADERS(config.h)
++AM_CONFIG_HEADER(config.h)
+ 
+ AC_OUTPUT(Makefile
+ include/Makefile
+diff --git a/saslauthd/config/ltconfig b/saslauthd/config/ltconfig
+index 20327d6..ba8bb1c 100755
+--- a/saslauthd/config/ltconfig
++++ b/saslauthd/config/ltconfig
+@@ -1374,7 +1374,7 @@ else
+ 
+   darwin[15]* | rhapsody*)
+     allow_undefined_flag='-undefined error'
+-    archive_cmds='$CC $(test x$module = xyes && echo -bundle || echo -dynamiclib) $allow_undefined_flag -o $lib $libobjs $deplibs $linkopts -install_name $rpath/$soname $(test -n "$verstring" -a x$verstring != x0.0 && echo $verstring)'
++    archive_cmds='$CC $(test x$module = xyes && echo -bundle || echo -dynamiclib) $allow_undefined_flag -o $lib $libobjs $deplibs $linkopts $(test x$module != xyes && echo -install_name $rpath/$soname) $(test -n "$verstring" -a x$verstring != x0.0 && echo $verstring)'
+     # We need to add '_' to the symbols in $export_symbols first
+     #archive_expsym_cmds="$archive_cmds"' && strip -s $export_symbols $lib'
+     hardcode_direct=yes
