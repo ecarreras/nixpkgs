@@ -7873,6 +7873,8 @@ let
     ffmpeg = ffmpeg_1_0;
   };
 
+  vlmc = callPackage ../applications/video/vlmc { };
+
   vnstat = callPackage ../applications/networking/vnstat { };
 
   vorbisTools = callPackage ../applications/audio/vorbis-tools { };
